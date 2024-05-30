@@ -25,6 +25,7 @@ format:
 <img src="imagenes/logo_portada2.png" width="20%"/>  
 
 
+
 [**Modelo de detección de anomalías utilizando paradatos ENUSC 2023**]{.big-par .center-justified}
 [**Proyecto Ciencia de Datos**]{.medium-par.center-justified}
 
