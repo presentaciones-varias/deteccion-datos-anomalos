@@ -1,0 +1,320 @@
+---
+# title: "Identificación de falseamiento ENUSC"
+# author: "Marzo 2024"
+format:
+  revealjs:
+    auto-stretch: false
+    margin: 0
+    slide-number: true
+    scrollable: true
+    preview-links: auto
+    logo: imagenes/logo_portada2.png
+    css: ine_quarto_styles.css
+    # footer: <https://quarto.org>
+---
+
+#
+
+[]{.linea-superior} 
+[]{.linea-inferior} 
+
+<!---
+ <img src="imagenes/logo_portada2.png" style="width: 20%"/>  
+--->
+
+<img src="imagenes/logo_portada2.png" width="20%"/>  
+
+
+
+[**Procesamiento de paradatos para la detección de anomalías ENUSC 2023**]{.big-par .center-justified}
+[**Proyecto Ciencia de Datos**]{.medium-par.center-justified}
+
+[**Mayo 2024**]{.big-par .center-justified}
+
+
+## [Contenidos]{.big-par}  
+
+<!-- ::: {.incremental} -->
+
+- Motivación 💡
+
+- [Procesamiento de paradatos]{.medium-par} 🔎 👩‍💻
+
+<!-- ::: -->
+
+
+
+## [Motivación (1/2)]{.big-par}
+
+::: {.incremental .medium-par-2}
+- El falseamiento es un problema que altera los resultados estadísticos de una encuesta.
+- Su detección es difícil, por lo que suele hacerse una vez terminada la encuesta y con un consumo intensivo de recursos humanos.
+  - Actualmente se supervisa aleatoriamente un 10% de las encuestas.
+  
+- Nace la necesidad de crear una herramienta que permita detectar el comportamiento anómalo en las entrevistas durante el levantamiento de la encuesta.
+  - Implica el procesamiento y análisis de un gran volumen de información (paradatos) en *"tiempo real"*
+  
+:::
+
+
+## [Motivación (2/2)]{.big-par}
+
+**¿Cómo modelamos la información?**
+
+::: {.incremental .medium-par-2}
+1. Flujo *ETL* automatizado que descarga y procesa los paradatos ENUSC.
+    - En el procesamiento, nos interesa captar el comportamiento de los registros de las diferentes acciones realizadas (medir cantidad de eventos y el tiempo de ejecución).
+2. Los datos transformados son el input para modelos de detección de anomalías.
+3. Visualización de resultados de la detección y monitoreo del comportamiento de registros durante el levantamiento.
+:::
+
+<!-- EDITAR CONTINUACION... PONER QUE SE BUSCA ANALIZAR EL COMPORTAMIENTO DE REGISTRO DE RESPUESTAS DE LOS ENCUESTADORES EN CADA RECOLECCION -> ¿COMO LO HACEMOS? MIDIENDO TIEMPOS Y CANTIDADES DE REGISTROS SEGUN DIFERENTES EVENTOS. -->
+
+## [Detección de anomalías | Procesamiento de paradatos (1/6)]{.big-par}
+
+**¿Qué son los paradatos?**
+
+<!-- introducir muy a grandes rasgos sus caracteristicas para despues entrar en detalle en como se procesaron los datos para que quedaran a nivel de entrevista -->
+
+::: {.incremental .medium-par}
+- Los paradatos son todos los registros brutos de cada acción que se realiza en las entrevistas.
+  
+  :::{.small-par-2}
+  
+  ```{r paradatos_brutos, echo= FALSE}
+  
+  library(RPresto)
+  library(DBI)
+  library(dplyr)
+  library(kableExtra)
+  
+  con.trino <- DBI::dbConnect(
+    RPresto::Presto(),
+    use.trino.headers = TRUE,
+    host = "10.90.10.60",
+    port = 8080,
+    user = "root",
+    catalog = "hive",
+    schema = "staging"
+  )
+  
+  
+  paradato_bruto <- dbGetQuery(con.trino, 'SELECT * FROM "staging".enusc_paradatos_raw  LIMIT 7')
+  
+  paradato_bruto %>% select(-order_number) %>% kbl()
+  
+  ```
+  :::
+
+
+- Actualmente contamos con *66.375.084* observaciones.
+
+:::
+
+
+## [Detección de anomalías | Procesamiento de paradatos (2/6)]{.big-par}
+
+
+::: {.incremental .medium-par}
+- Pero en el análisis sólo necesitamos las acciones realizadas por los responsables de la encuesta (encuestadores y encargados de grupo).
+
+- Estas acciones consisten en los siguientes eventos reportados:   
+  - **AnswerSet**, **AnswerRemoved**, **CommentSet**, **OpenedBySupervisor**, **RejectedBySupervisor**, **ApproveBySupervisor**, **Completed**
+:::
+
+
+```{r elim_conexion, echo=FALSE, message= FALSE, warning=FALSE, include=FALSE}
+query_3 = '
+          SELECT event
+          , count(*) as event_count
+          FROM "staging".enusc_paradatos_raw
+          GROUP BY event
+          ORDER BY event_count DESC
+          '
+
+aux <- dbGetQuery(con.trino, query_3) %>% 
+  rename(Eventos = event,
+         Cantidad = event_count) 
+
+
+
+```
+
+:::: {layout-ncol=2}
+
+::: {.fragment .small-par .center}
+
+```{r tabla_eventos1, echo=FALSE}
+aux %>% slice(1:13) %>% kbl() %>% row_spec(c(3, 8, 11, 13), background = 'lightyellow1')
+```
+
+:::
+
+::: {.fragment .small-par .center}
+
+```{r tabla_eventos2, echo=FALSE}
+aux %>% slice(14:26) %>% kbl() %>% row_spec(c(4, 8, 9), background = 'lightyellow1')
+```
+
+::: 
+
+::::
+
+<br>
+
+## [Detección de anomalías | Procesamiento de paradatos (3/6)]{.big-par}
+
+```{r ejemplo_respuestas, echo = FALSE}
+
+library(dplyr)
+library(kableExtra)
+
+load('data/tabla_ejemplo_tiempos.RData')
+aux$interview_id <- '11111'
+aux <- aux %>% 
+  slice(5:11) %>% 
+  mutate(role = '1',
+         tiempo_desfasado = lag(timestamp_utc_TZ)) %>% 
+  mutate(Diferencia_tiempo = timestamp_utc_TZ- tiempo_desfasado) %>% 
+  select(-preguntas_com, -tiempo_desfasado, -diff_respuesta) 
+
+```
+
+
+
+**¿Cómo se realiza la estimación de la cantidad de eventos?**
+
+:::{.incremental .medium-par}
+1. Para cada entrevista, realizamos un conteo de eventos registrados según responsable (encuestador o encargado de grupo)
+
+2. Este conteo se realiza para: *AnswerSet*, *AnswerRemoved*, *CommentSet*, *OpenedBySupervisor*, *RejectedBySupervisor*, *ApproveBySupervisor*, *Completed*
+:::
+
+. . .
+
+Ejemplo:
+
+
+::::{layout-ncol=2}
+
+:::{.fragment .small-par-2 .center}
+
+```{r ejemplo_cantidad_respuestas1, echo = FALSE}
+aux %>% 
+  select(-Diferencia_tiempo, -timestamp_utc_TZ) %>% 
+  kbl()
+
+```
+
+:::
+
+:::{.fragment .small-par .center}
+
+
+```{r ejemplo_cantidad_respuestas2, echo = FALSE}
+
+aux %>%
+  select(-Diferencia_tiempo, -timestamp_utc_TZ) %>% 
+  group_by(interview_id, role, event) %>% 
+  summarise(Cantidad = n()) %>% 
+  kbl()
+
+```
+
+:::
+
+::::
+
+## [Detección de anomalías | Procesamiento de paradatos (4/6)]{.big-par}
+
+
+ <!-- - Si el tiempo es mayor a 3 minutos para encuestadores o mayor a 15 minutos para encargados de grupos, se eliminará pues es considerado como punto de inicio de otra visita/ revisión realizada. -->
+
+. . .
+
+**¿Cómo se realiza la estimación de los tiempos de respuesta?**
+
+:::{.incremental .medium-par}
+
+1. Para cada entrevista, se ordena según el tiempo en que se registran los eventos.
+
+2. Calculamos la diferencia de tiempo entre eventos consecutivos.
+    
+    - Si la diferencia de tiempo es mayor al umbral definido para cada responsable, esta será eliminada pues es considerado como punto de inicio de otra visita o revisión.
+
+:::
+    
+. . .
+
+Ejemplo:
+
+:::{.small-par}
+
+```{r ejemplo_tiempos_respuesta}
+aux %>% 
+  kbl() %>% 
+    row_spec(4,
+           background = 'lightyellow1')
+
+```
+
+
+
+:::
+
+. . .
+
+Tiempo total acciones: `r aux %>% filter(Diferencia_tiempo<180) %>% pull(Diferencia_tiempo) %>% sum()`
+
+
+## [Detección de anomalías | Procesamiento de paradatos (5/6)]{.big-par}
+
+**¿Cómo se estima los tiempos de respuesta en las diferentes secciones (módulos)?**
+
+:::{.incremental .medium-par}
+
+1. Al igual que en el caso anterior, ordenaremos según el tiempo de registro de eventos
+
+2. Calculamos la diferencia de tiempo entre eventos consecutivos, pero tomaremos como tiempo inicial cuando se registre la fecha de inicio de cada sección:
+
+    [<img src="imagenes/plots/todas_las_secciones.PNG" width="60%"/>]{.center} 
+:::
+
+
+## [Detección de anomalías | Procesamiento de paradatos (6/6)]{.big-par}
+
+Ejemplo de tabla procesada que resume las acciones generadas en cada entrevista:
+
+:::{.small-par-2}
+
+```{r head_resumen_interview, echo = FALSE}
+
+resumen_head <- dbGetQuery(con.trino, 
+                           'SELECT interview_id, time_answer_interviewer, time_answer_supervisor, 
+                                   n_answer_interviewer, n_completed_interviewer, n_commentset_interviewer,
+                                   n_rejected_supervisor,
+                                   reg_cdf
+                            FROM "staging".enusc_paradatos_trans_interviews
+                            LIMIT 4')
+
+resumen_head$interview_id <- 1000000:1000003
+
+resumen_head[, 1:4] %>% kbl()
+```
+
+<br>
+
+```{r head_resumen_interview2, echo = FALSE}
+resumen_head[, c(1, 5:8)] %>% kbl()
+
+```
+
+
+:::
+
+
+```{r disconect, echo = FALSE, message=FALSE, include=FALSE}
+dbDisconnect(con.trino)
+```
+
+
