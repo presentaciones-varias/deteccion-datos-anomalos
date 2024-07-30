@@ -36,41 +36,11 @@ format:
 
 <!-- ::: {.incremental} -->
 
-- Motivación 💡
-
 - [Procesamiento de paradatos]{.medium-par} 🔎 👩‍💻
 
 <!-- ::: -->
 
-
-
-## [Motivación (1/2)]{.big-par}
-
-::: {.incremental .medium-par-2}
-- El falseamiento es un problema que altera los resultados estadísticos de una encuesta.
-- Su detección es difícil, por lo que suele hacerse una vez terminada la encuesta y con un consumo intensivo de recursos humanos.
-  - Actualmente se supervisa aleatoriamente un 10% de las encuestas.
-  
-- Nace la necesidad de crear una herramienta que permita detectar el comportamiento anómalo en las entrevistas durante el levantamiento de la encuesta.
-  - Implica el procesamiento y análisis de un gran volumen de información (paradatos) en *"tiempo real"*
-  
-:::
-
-
-## [Motivación (2/2)]{.big-par}
-
-**¿Cómo modelamos la información?**
-
-::: {.incremental .medium-par-2}
-1. Flujo *ETL* automatizado que descarga y procesa los paradatos ENUSC.
-    - En el procesamiento, nos interesa captar el comportamiento de los registros de las diferentes acciones realizadas (medir cantidad de eventos y el tiempo de ejecución).
-2. Los datos transformados son el input para modelos de detección de anomalías.
-3. Visualización de resultados de la detección y monitoreo del comportamiento de registros durante el levantamiento.
-:::
-
-<!-- EDITAR CONTINUACION... PONER QUE SE BUSCA ANALIZAR EL COMPORTAMIENTO DE REGISTRO DE RESPUESTAS DE LOS ENCUESTADORES EN CADA RECOLECCION -> ¿COMO LO HACEMOS? MIDIENDO TIEMPOS Y CANTIDADES DE REGISTROS SEGUN DIFERENTES EVENTOS. -->
-
-## [Detección de anomalías | Procesamiento de paradatos (1/6)]{.big-par}
+## [Procesamiento de paradatos (1/6)]{.big-par}
 
 **¿Qué son los paradatos?**
 
@@ -112,7 +82,7 @@ format:
 :::
 
 
-## [Detección de anomalías | Procesamiento de paradatos (2/6)]{.big-par}
+## [Procesamiento de paradatos (2/6)]{.big-par}
 
 
 ::: {.incremental .medium-par}
@@ -162,7 +132,7 @@ aux %>% slice(14:26) %>% kbl() %>% row_spec(c(4, 8, 9), background = 'lightyello
 
 <br>
 
-## [Detección de anomalías | Procesamiento de paradatos (3/6)]{.big-par}
+## [Procesamiento de paradatos (3/6)]{.big-par}
 
 ```{r ejemplo_respuestas, echo = FALSE}
 
@@ -225,7 +195,7 @@ aux %>%
 
 ::::
 
-## [Detección de anomalías | Procesamiento de paradatos (4/6)]{.big-par}
+## [Procesamiento de paradatos (4/6)]{.big-par}
 
 
  <!-- - Si el tiempo es mayor a 3 minutos para encuestadores o mayor a 15 minutos para encargados de grupos, se eliminará pues es considerado como punto de inicio de otra visita/ revisión realizada. -->
@@ -267,7 +237,7 @@ aux %>%
 Tiempo total acciones: `r aux %>% filter(Diferencia_tiempo<180) %>% pull(Diferencia_tiempo) %>% sum()`
 
 
-## [Detección de anomalías | Procesamiento de paradatos (5/6)]{.big-par}
+## [Procesamiento de paradatos (5/6)]{.big-par}
 
 **¿Cómo se estima los tiempos de respuesta en las diferentes secciones (módulos)?**
 
@@ -281,7 +251,7 @@ Tiempo total acciones: `r aux %>% filter(Diferencia_tiempo<180) %>% pull(Diferen
 :::
 
 
-## [Detección de anomalías | Procesamiento de paradatos (6/6)]{.big-par}
+## [Procesamiento de paradatos (6/6)]{.big-par}
 
 Ejemplo de tabla procesada que resume las acciones generadas en cada entrevista:
 

@@ -26,23 +26,24 @@ format:
 
 
 
-[**Modelo de detección de anomalías utilizando paradatos ENUSC 2023**]{.big-par .center-justified}
+[**Detección de comportamientos anómalos en encuestas utilizando paradatos**]{.big-par .center-justified}
 [**Proyecto Ciencia de Datos**]{.medium-par.center-justified}
 
-[**Mayo 2024**]{.big-par .center-justified}
+[**Julio 2024**]{.big-par .center-justified}
 
 
 ## [Contenidos]{.big-par}  
 
 <!-- ::: {.incremental} -->
-
 - Motivación 💡
 
-- Detección de anomalías 🔎 👩‍💻
-  - [Procesamiento de paradatos]{.medium-par} 
-  - [Modelamiento]{.medium-par} 
-  - [Métricas]{.medium-par} 
-  - [Comparación metodologías]{.medium-par}
+- Flujo 👩‍💻 👨‍💻
+  - [Esquema general]{.medium-par}
+  - [Procesamiento de paradatos R]{.medium-par} 
+  
+- Monitoreo de comportamiento anómalo 🔎
+  - [Modelos predictivos ENUSC]{.medium-par}
+  - [Dashboard de monitoreo]{.medium-par}
   
 - Reflexión final 🤔
 
@@ -53,30 +54,42 @@ format:
 ## [Motivación (1/2)]{.big-par}
 
 ::: {.incremental .medium-par-2}
+
 - El falseamiento es un problema que altera los resultados estadísticos de una encuesta.
+
 - Su detección es difícil, por lo que suele hacerse una vez terminada la encuesta y con un consumo intensivo de recursos humanos.
   - Actualmente se supervisa aleatoriamente un 10% de las encuestas.
   
 - Nace la necesidad de crear una herramienta que permita detectar el comportamiento anómalo en las entrevistas durante el levantamiento de la encuesta.
-  - Implica el procesamiento y análisis de un gran volumen de información (paradatos) en *"tiempo real"*
+
+:::
+
+## [Motivación (2/2)]{.big-par}
+
+¿Cómo creamos esta herramienta? 🤔
+
+::: {.incremental .medium-par-2}
+
+- Procesando y analizando los datos que se van generando cuando las personas realizan alguna acción.
+  - Es decir, procesar y analizar un gran volumen de información (paradatos) en *"tiempo real"* 
+
+- Con esto, podemos ayudar al equipo de supervisión dirigiendo los casos en donde existan comportamientos fuera de lo normal. 
   
 :::
 
 
-## [Motivación (2/2)]{.big-par}
-
-**¿Cómo modelamos la información?**
+## [Flujo | Esquema general]{.big-par}
 
 ::: {.incremental .medium-par-2}
-1. Flujo *ETL* automatizado que descarga y procesa los paradatos ENUSC.
-    - En el procesamiento, nos interesa captar el comportamiento de los registros de las diferentes acciones realizadas (medir cantidad de eventos y el tiempo de ejecución).
-2. Los datos transformados son el input para modelos de detección de anomalías.
-3. Visualización de resultados de la detección y monitoreo del comportamiento de registros durante el levantamiento.
+
+- El flujo ETL (Extracción, Transformación, Carga) es implementado usando el orquestador Dagster. 👨‍💻🧉
+
+  [<img src="imagenes/dagster_etl_enusc_tech_pres_01.png"/>]{.center} 
+
+
 :::
 
-<!-- EDITAR CONTINUACION... PONER QUE SE BUSCA ANALIZAR EL COMPORTAMIENTO DE REGISTRO DE RESPUESTAS DE LOS ENCUESTADORES EN CADA RECOLECCION -> ¿COMO LO HACEMOS? MIDIENDO TIEMPOS Y CANTIDADES DE REGISTROS SEGUN DIFERENTES EVENTOS. -->
-
-## [Detección de anomalías | Procesamiento de paradatos (1/6)]{.big-par}
+## [Flujo | Procesamiento de paradatos (1/6)]{.big-par}
 
 **¿Qué son los paradatos?**
 
@@ -97,15 +110,15 @@ format:
   con.trino <- DBI::dbConnect(
     RPresto::Presto(),
     use.trino.headers = TRUE,
-    host = "192.168.1.4",
+    host = "10.90.10.60",
     port = 8080,
     user = "root",
-    catalog = "datalake",
+    catalog = "hive",
     schema = "staging"
   )
   
   
-  paradato_bruto <- dbGetQuery(con.trino, 'SELECT * FROM "staging".enusc_paradatos_raw  LIMIT 7')
+  paradato_bruto <- dbGetQuery(con.trino, 'SELECT * FROM "staging".enusc_paradatos_raw_2023  LIMIT 7')
   
   paradato_bruto %>% select(-order_number) %>% kbl()
   
@@ -113,19 +126,23 @@ format:
   :::
 
 
-- Actualmente contamos con *66.375.084* observaciones.
+- Durante el levantamiento de ENUSC 2023 se alcanzaron un total de *66.375.084* observaciones aproximadamente.
 
 :::
 
 
-## [Detección de anomalías | Procesamiento de paradatos (2/6)]{.big-par}
+## [Flujo | Procesamiento de paradatos (2/6)]{.big-par}
 
 
 ::: {.incremental .medium-par}
-- Pero en el análisis sólo necesitamos las acciones realizadas por los responsables de la encuesta (encuestadores y encargados de grupo).
 
-- Estas acciones consisten en los siguientes eventos reportados:   
+- Pero no todos los eventos registrados son de interés. 
+
+- En el análisis sólo necesitamos las acciones realizadas por los responsables de la encuesta (encuestadores y encargados de grupo).
+
+- Estas acciones consisten en los siguientes eventos reportados como:   
   - **AnswerSet**, **AnswerRemoved**, **CommentSet**, **OpenedBySupervisor**, **RejectedBySupervisor**, **ApproveBySupervisor**, **Completed**
+  
 :::
 
 
@@ -141,8 +158,6 @@ query_3 = '
 aux <- dbGetQuery(con.trino, query_3) %>% 
   rename(Eventos = event,
          Cantidad = event_count) 
-
-
 
 ```
 
@@ -168,7 +183,7 @@ aux %>% slice(14:26) %>% kbl() %>% row_spec(c(4, 8, 9), background = 'lightyello
 
 <br>
 
-## [Detección de anomalías | Procesamiento de paradatos (3/6)]{.big-par}
+## [Flujo | Procesamiento de paradatos (3/6)]{.big-par}
 
 ```{r ejemplo_respuestas, echo = FALSE}
 
@@ -231,7 +246,7 @@ aux %>%
 
 ::::
 
-## [Detección de anomalías | Procesamiento de paradatos (4/6)]{.big-par}
+## [Flujo | Procesamiento de paradatos (4/6)]{.big-par}
 
 
  <!-- - Si el tiempo es mayor a 3 minutos para encuestadores o mayor a 15 minutos para encargados de grupos, se eliminará pues es considerado como punto de inicio de otra visita/ revisión realizada. -->
@@ -273,7 +288,7 @@ aux %>%
 Tiempo total acciones: `r aux %>% filter(Diferencia_tiempo<180) %>% pull(Diferencia_tiempo) %>% sum()`
 
 
-## [Detección de anomalías | Procesamiento de paradatos (5/6)]{.big-par}
+## [Flujo | Procesamiento de paradatos (5/6)]{.big-par}
 
 **¿Cómo se estima los tiempos de respuesta en las diferentes secciones (módulos)?**
 
@@ -287,7 +302,7 @@ Tiempo total acciones: `r aux %>% filter(Diferencia_tiempo<180) %>% pull(Diferen
 :::
 
 
-## [Detección de anomalías | Procesamiento de paradatos (6/6)]{.big-par}
+## [Flujo | Procesamiento de paradatos (6/6)]{.big-par}
 
 Ejemplo de tabla procesada que resume las acciones generadas en cada entrevista:
 
@@ -318,20 +333,32 @@ resumen_head[, c(1, 5:8)] %>% kbl()
 
 :::
 
-
 ```{r disconect, echo = FALSE, message=FALSE, include=FALSE}
 dbDisconnect(con.trino)
 ```
 
 
 
-## [Detección de anomalías | Descripción general (1/4)]{.big-par}
+## [Monitoreo de comportamiento]{.big-par}
+
+:::{.incremental .medium-par}
+
+- Para identificar comportamientos anormales, se realizó un dashboard de monitoreo para las encuestas *ENUSC* y *ENPCCL*.
+
+- El cual consta de diferentes pestañas, en donde se analiza el **comportamiento de registro de respuestas** de los encuestadores y encargados de grupo.
+
+- Para la ENUSC, se crearon modelos predictivos los cuales nos ayudan en esta tarea de detección de anomalías.
+
+:::
+
+
+## [Monitoreo de comportamiento | Modelos predictivos ENUSC (1/4)]{.big-par}
 
 :::{.incremental .medium-par}
 
 - Para identificar comportamientos anómalos, utilizaremos la información **a nivel de entrevista**, es decir, en una fila existe información de una entrevista (interview_id).
 
-- Adicionalmente, trabajaremos solo con los casos en que la entrevista haya sido realizada en el dispositivo ***DMC*** (se omiten entrevistas realizadas en papel o por teléfono) y tengan un estado final ***completa*** o ***falseada*** (CDF 11 o 45).
+- Trabajaremos con los casos en que la entrevista haya sido realizada en el dispositivo ***DMC*** (se omiten entrevistas realizadas en papel o por teléfono) y tengan un estado final ***completa*** o ***falseada*** (CDF 11 o 45).
 
 - En total, contamos con *50.159* observaciones, las cuales se distribuyen como:
 
@@ -345,62 +372,7 @@ dbDisconnect(con.trino)
 :::
 
 
-
-
-## [Detección de anomalías | Descripción general (3/4)]{.big-par}
-
-Veamos como se distribuye la cantidad y tiempos de respuestas totales en las entrevistas para los encuestadores actualmente:
-
-:::: {layout-ncol=2}
-
-::: fragment
-
-[<img src="imagenes/plots/n_answerset_int.png" width="95%"/>]{.center} 
-
-:::
-
-
-::: fragment
-
-[<img src="imagenes/plots/time_answerset_int.png" width="95%"/>]{.center} 
-
-:::
-
-::::
-
-
-<br>
-
-
-## [Detección de anomalías | Descripción general (4/4)]{.big-par}
-
-Cantidad de respuestas y tiempos de las entrevistas para los encuestadores a nivel de secciones:
-
-. . .
-
-:::: {layout-ncol=2}
-
-::: fragment
-
-[<img src="imagenes/plots/boxplot_cantidad2.png"/>]{.center} 
-
-:::
-
-
-::: fragment
-
-[<img src="imagenes/plots/boxplot_time2.png"/>]{.center} 
-
-:::
-
-::::
-
-
-<br>
-
-## [Detección de anomalías | Modelamiento]{.big-par}
-
-. . .
+## [Monitoreo de comportamiento | Modelos predictivos ENUSC (2/4)]{.big-par}
 
 ::: {.incremental .medium-par}
 
@@ -420,13 +392,15 @@ Cantidad de respuestas y tiempos de las entrevistas para los encuestadores a niv
 
 :::
 
-. . .
+## [Monitoreo de comportamiento | Modelos predictivos ENUSC (3/4)]{.big-par}
 
+::::{layout-ncol=2}
 
-
-## [Detección de anomalías | Métricas (1/3)]{.big-par}
+:::{.fragment .incremental}
 
 [1. **Modelo XGBoost**]{.big-par}
+
+<br>
 
 ```{r echo =FALSE, warning=FALSE, message=FALSE, fig.align='center'}
 library(dplyr)
@@ -439,7 +413,7 @@ metricas_xgb <- read_excel('data/metricas_XGBOOST.xlsx')
 ```
 
 
-Matriz de confusión (set de testeo):
+**Matriz de confusión (set de testeo):**
 
 ::: {.medium-par}
 
@@ -450,9 +424,9 @@ Matriz de confusión (set de testeo):
   | Si | `r pull(table_xgb[1,3])` | `r pull(table_xgb[2,3])` |
 :::
 
-. . .
+<br>
 
-Métricas (set de testeo):
+**Métricas (set de testeo):**
 
 ::: {.medium-par}
 
@@ -464,54 +438,16 @@ Métricas (set de testeo):
 
 :::
 
+::: 
 
-## [Detección de anomalías | Métricas (2/3)]{.big-par}
+:::{.fragment .incremental}
+
 
 [2. **Modelo K-means**]{.big-par}
 
-::: {.incremental .medium-par}
+<br>
 
-- El cluster clasificado como *Anómalo* se distingue por tener **tiempos de respuestas bajos** en comparación a los demás grupos*.
-  
-  ```{r clust_kmeans}
-  
-  cluster_anomalo <- read_excel('data/cluster_anomalo.xlsx') %>% select(-`...1`)
-  
-  cluster_anomalo <- cluster_anomalo %>% 
-    select(time_answer_interviewer, #tiempo_hora_inicio_cc_fecha_inicio_v,
-           time_answer_supervisor, tiempo_fecha_inicio_v_hora_cc,
-           n_visit_interviewer, n_answer_interviewer,
-           n_answerset_fecha_inicio_v_hora_cc)
-  
-  ## comparacion:
-  comparacion <- cluster_anomalo %>% 
-    round(digits = 2) %>% 
-    rename(tiempo_respuesta_encuestador = time_answer_interviewer,
-           #tiempo_IncioCC_IncioV = tiempo_hora_inicio_cc_fecha_inicio_v,
-           tiempo_respuesta_supervisor = time_answer_supervisor,
-           tiempo_InicioV_Termino_CC = tiempo_fecha_inicio_v_hora_cc,
-           n_visita_encuestador = n_visit_interviewer,
-           n_respuesta_encuestador = n_answer_interviewer,
-           n_respuesta_InicioV_Termino_CC = n_answerset_fecha_inicio_v_hora_cc) %>% 
-    as.data.frame()
-  
-  
-  row.names(comparacion) <- c('Encuesta normal', 'Encuesta Anómala')
-  
-  comparacion %>% 
-    t() %>% 
-    kbl()
-  
-  ```
-  [* *tiempos de respuesta en minutos*]{.small.par}
-:::
-
-
-## [Detección de anomalías | Métricas (3/3)]{.big-par}
-
-[2. **Modelo K-means**]{.big-par}
-
-Matriz de confusión (set de testeo):
+**Matriz de confusión (set de testeo):**
 
 ```{r echo =FALSE, warning=FALSE, message=FALSE, fig.align='center'}
 
@@ -530,11 +466,9 @@ metricas_km <- read_excel('data/metricas_KMEANS.xlsx')
 
 :::
 
+<br>
 
-
-. . .
-
-Métricas (set de testeo):
+**Métricas (set de testeo):**
 
 ::: {.medium-par}
 
@@ -547,12 +481,11 @@ Métricas (set de testeo):
 
 :::
 
+:::
 
-## [Comparación metodologías (1/3)]{.big-par}
+::::
 
-. . .
-
-**¿Cómo tomamos las decisiones?**
+## [Monitoreo de comportamiento | Modelos predictivos ENUSC (4/4)]{.big-par}
 
 ```{r seleccion_aleatoria, echo =FALSE, warning=FALSE, message=FALSE, fig.align='center'}
 set.seed(10)
@@ -566,9 +499,10 @@ aux1 =  aux %>% prop.table() %>% round(digits = 4) *100
 
 ```
 
+
 ::: {.medium-par .incremental}
 
-- Recordemos que la metodología actual consiste en realizar una supervisión aleatoria del 10% del total de entrevistas.
+- Quizás las métricas alcanzadas no son las mejores, pero recordemos que la metodología actual de supervisión consiste en realizar una muestra aleatoria del 10% del total de entrevistas.
 
 - Por ejemplo, seleccionemos aleatoriamente el 10% de nuestro set de testeo (seleccionamos y supervisamos `r aux[1] + aux[2]` observaciones):
 
@@ -581,177 +515,128 @@ aux1 =  aux %>% prop.table() %>% round(digits = 4) *100
 
 :::
 
-## [Comparación metodologías (2/3)]{.big-par}
 
-**¿Cómo tomamos las decisiones?**
 
-::: {.medium-par .incremental}
+## [Monitoreo de comportamiento | Dashboard de monitoreo (1/5)]{.big-par}
 
-- Si se detectan casos anómalos en los modelos XGB **y** K-means:
+:::{.incremental .medium-par}
 
-  <img src="imagenes/plots/auxY.PNG" width="140%"/>
+- Para la creación del dashboard, se utilizó *streamlit*
 
-- Si se detectan casos anómalos en el modelo XGB **o** el modelo K-means:
+- Streamlit nos permite crear una app interactiva desde python, sin la necesidad de tener conocimiento de *back* y *front* *end*, lo que la hace bastante intuitiva
+  - Pero puede ser un arma de doble filo si no se es ordenado con el código 😵!
 
-  <img src="imagenes/plots/auxO.PNG" width="140%"/>
-
-:::
-
-## [Comparación metodologías (2/3)]{.big-par}
-
-```{r echo =FALSE, warning=FALSE, message=FALSE, fig.align='center'}
-
-predicciones <- predicciones %>% mutate(valor_real = ifelse(valor_real==1, 'Si', 'No'))
-
-aux_prop_ambas <- predicciones %>% 
-  mutate(Prediccion_final = ifelse(pred_XGB == 1 & pred_km == 1, 'Si', 'No')) %>% 
-  select(valor_real , Prediccion_final) %>% 
-  #mutate(prop = (n / sum(n)) %>% round(3))
-  table()
-
-aux_prop_una <- predicciones %>% 
-  mutate(Prediccion_final = ifelse(pred_XGB == 1 | pred_km == 1, 'Si', 'No')) %>% 
-  select(valor_real, Prediccion_final) %>% 
-  table()
-
-```
-
-**¿Cómo tomamos las decisiones?**
-
-::: {.medium-par}
-
-- Si se detectan casos anómalos en los modelos XGB **y** K-means:
-
-    <img src="imagenes/plots/XGB_Y_KMEANS.PNG" width="140%"/>
-
-- Si se detectan casos anómalos en el modelo XGB **o** el modelo K-means:
-    
-    <img src="imagenes/plots/XGB_O_KMEANS.PNG" width="140%"/>
-
-:::
-
-## [Comparación metodologías (3/3)]{.big-par}
-
-**¿Cómo tomamos las decisiones?**
-
-::: {.medium-par}
-
-- Selección aleatoria del 10% set de testeo, supervisamos **`r aux[1] + aux[2]` observaciones**:
-
-    | **Caso anómalo**| n| Proporción |
-    |---|---|---|
-    | **No** | `r aux[1]`| `r aux1[1]` % |
-    | **Si** | `r aux[2]`| `r aux1[2]` % |
-      
-    [*$^*$Casos anómalos que quedan fuera `r table(predicciones$valor_real)[2] - aux[2]` *]{.small-par .center}
-    
-:::
-
-::::{layout-ncol=2}
-
-::: fragment
-
-::: {.small-par .incremental}
-
-- Si se detectan casos anómalos en los modelos XGB **y** K-means, supervisamos **`r aux_prop_ambas[3] + aux_prop_ambas[4]` observaciones**:
-
-    | | Predicción Final|  |
-    |---|---|---|
-    | **Caso anómalo**|  **Si** | **Proporción** |
-    | No | `r aux_prop_ambas[3]` | `r round(aux_prop_ambas[3]*100/(aux_prop_ambas[3] + aux_prop_ambas[4]), digits= 2)` %|
-    | Si |`r aux_prop_ambas[4]`  | `r round(aux_prop_ambas[4]*100/(aux_prop_ambas[3] + aux_prop_ambas[4]), digits= 2)` %|
+- Para los dashboards de monitoreo, se creó una app *multipage*, es decir, que posee diferentes pestañas:
   
-    [*$^*$Casos anómalos que quedan fuera `r aux_prop_ambas[2]`*]{.small-par .center} 
+    <img src="imagenes/plots/dashboard_multipage.png" width="90%"/>
+    
+:::
+
+
+## [Monitoreo de comportamiento | Dashboard de monitoreo (2/5)]{.big-par}
+
+:::{.incremental .medium-par}
+
+- Lo cual se hace simplemente dejando un script principal y creando la carpeta *pages*, en donde estarán los demás scripts:
+
+  [<img src="imagenes/plots/orden_carpetas.png" width="30%"/>]{.center} 
+  
+- El número que aparece en el nombre del script, indica el orden de aparición en el dashboard.
+
+- Dentro de cada script, esta todo el código que usaremos en aquella pestaña, sin la necesidad tener la estructura UI-Server.
+  
+:::
+
+## [Monitoreo de comportamiento | Dashboard de monitoreo (3/5)]{.big-par}
+
+:::{.incremental .medium-par}
+
+- En Shiny, esto se veria como:
+
+  - UI:   
+    [<img src="imagenes/plots/shiny1.png"/>]{.center} 
+  
+  - Server:
+    [<img src="imagenes/plots/shiny2.png"/>]{.center} 
+:::
+
+
+## [Monitoreo de comportamiento | Dashboard de monitoreo (4/5)]{.big-par}
+
+. . .
+
+Mucho blah blah 😴...
+
+. . .
+
+¿Que nos muestra el dashboard? 🕵️‍♀️
+
+. . .
+
+:::{.incremental .medium-par}
+
+- El dashboard posee 5 pestañas, 1 de login y 4 de análisis de paradatos.
+
+- Ambas encuestas (ENUSC y ENPCCL), poseen las pestañas:
+
+  - **General**: Vista general de la cantidad y tiempos de respuesta 
+  - **Revisión Encuestador**: Análisis del comportamiento de respuesta del encuestador ¿Cuanto se demora en promedio en realizar las encuestas semanalmente o diariamente? ¿Cuantas entrevistas realiza? ¿ Ha agregado comentarios?
+  - **Revisión Encargado de grupo**: De forma similar a la pestaña *Revisión Encuestador*, se analiza el comportamiento de revisión de los encargados de grupo.
 
 :::
 
-:::
+## [Monitoreo de comportamiento | Dashboard de monitoreo (5/5)]{.big-par}
 
+:::{.incremental .medium-par}
+- Para la **ENUSC**, podemos encontrar una pestaña de *Revisión modelo*, en donde se realiza una predicción con los modelos ajustados, siempre y cuando las entrevistas cumplan con los supuestos (CDF = 11, realización en DMC) y se analizan los resultados alcanzados.
 
-::: fragment
-
-::: {.small-par .incremental}
-
-- Si se detectan casos anómalos en el modelo XGB **o** el modelo K-means, supervisamos **`r aux_prop_una[3] + aux_prop_una[4]` observaciones**:
-
-    | |Predicción Final|  |
-    |---|---|---|
-    | **Caso anómalo**|  **Si** | **Proporción** |
-    | No |`r aux_prop_una[3]` | `r round(aux_prop_una[3]*100/(aux_prop_una[3] + aux_prop_una[4]), digits= 2)` % |
-    | Si | `r aux_prop_una[4]`| `r round(aux_prop_una[4]*100/(aux_prop_una[3] + aux_prop_una[4]), digits= 2)` % |
-
-    [*$^*$Casos anómalos que quedan fuera `r aux_prop_una[2]`*]{.small-par .center} 
-
+- Para la **ENPCCL**, tenemos una pestaña con *rankings* para evaluar el comportamiento de respuesta según ciertos indicadores de interés del equipo.
 
 :::
-
-:::
-
-::::
 
 <br>
 
+. . .
+
+[¡Vamos al dashboard 🚀! [link](http://10.90.10.60:8010/)]{.center .big-par}
+
+. . .
 
 ## [Reflexión final]{.big-par}
 
-<!---
-indicar el orden de las carpetas del repositorio
---->
-
-:::{.incremental}
-
+:::{.incremental .medium-par}
 - A través del *machine learning*, buscamos ayudar a identificar casos con comportamiento anómalo en la encuesta, complementando el trabajo del equipo de supervisión.
 
-- Actualmente, estamos preparando un servicio experimental para la ENUSC 2024 que contará con un dashboard para monitorear el comportamiento de los registros ingresados.
+- Actualmente, estamos preparando un servicio experimental para la ENUSC 2024 y ENPCCL 2024.
 
 - Si el servicio funciona con éxito, se evaluará extender la metodología a otras encuestas.
+
+- Próximos pasos
+  
+  - Seguiremos trabajando para afinar las predicciones alcanzadas, buscando nuevas variables de interes.
+  
+  - En un futuro, nos gustaría poder implementar una identificación de perfiles de encuestadores por ej 'el encuestador buena onda', 'el madrugador', etc.
 
 :::
 
 
-
-
-#
-
-[<img src="imagenes/logo_portada2.png" width="20%"/>]{.center}
-
-
-[**Modelo de detección de anomalías utilizando paradatos ENUSC 2023**]{.big-par .center-justified}
-[**Proyecto Ciencia de Datos**]{.medium-par.center-justified}
-
-[**Mayo 2024**]{.big-par .center-justified}
-
+# 
 
 
 []{.linea-superior} 
 []{.linea-inferior} 
 
-# 
 
-Anexo
 
-## [Anexo I: Modelamiento]{.big-par}
+<!---
+ <img src="imagenes/logo_portada2.png" style="width: 20%"/>  
+--->
 
-::: {.incremental .medium-par}
+<img src="imagenes/logo_portada2.png" width="20%"/>  
 
-1. **Modelo XGBoost**:
+[**Detección de comportamientos anómalos en encuestas utilizando paradatos**]{.big-par .center-justified}
+[**Proyecto Ciencia de Datos**]{.medium-par.center-justified}
 
-   - Se realizó un tunning de parámetros, usando una grilla y un cross-validation con 15 k-fold.
-
-2. **Modelo K-means**: 
-
-   - Para poder identificar el comportamiento de las encuestas anómalas, se realizaron 50 clusters, en donde clasificaremos como *encuesta anómala* a los clusters que posean mas del 50% de proporción de anomalía.
-    
-      Por ejemplo:
-
-      |Cluster| N° entrevistas normales| N° entrevistas anómalas | Proporción |
-      |---|---|---|---|
-      |1 | 30 |20 | 0.4 |
-      |2 | 20 | 25 | 0.55 |  
-      |...| ...|...|...|
-      |50 | 70 | 32 |  0.31 |
-    
-
-:::
+[**Julio 2024**]{.big-par .center-justified}
 
 

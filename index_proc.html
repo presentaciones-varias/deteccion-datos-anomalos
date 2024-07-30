@@ -344,44 +344,12 @@
 <h2><span class="big-par">Contenidos</span></h2>
 <!-- ::: {.incremental} -->
 <ul>
-<li><p>Motivación 💡</p></li>
-<li><p><span class="medium-par">Procesamiento de paradatos</span> 🔎 👩‍💻</p></li>
+<li><span class="medium-par">Procesamiento de paradatos</span> 🔎 👩‍💻</li>
 </ul>
 <!-- ::: -->
 </section>
-<section id="motivación-12" class="slide level2">
-<h2><span class="big-par">Motivación (1/2)</span></h2>
-<div class="medium-par-2">
-<ul>
-<li class="fragment">El falseamiento es un problema que altera los resultados estadísticos de una encuesta.</li>
-<li class="fragment">Su detección es difícil, por lo que suele hacerse una vez terminada la encuesta y con un consumo intensivo de recursos humanos.
-<ul>
-<li class="fragment">Actualmente se supervisa aleatoriamente un 10% de las encuestas.</li>
-</ul></li>
-<li class="fragment">Nace la necesidad de crear una herramienta que permita detectar el comportamiento anómalo en las entrevistas durante el levantamiento de la encuesta.
-<ul>
-<li class="fragment">Implica el procesamiento y análisis de un gran volumen de información (paradatos) en <em>“tiempo real”</em></li>
-</ul></li>
-</ul>
-</div>
-</section>
-<section id="motivación-22" class="slide level2">
-<h2><span class="big-par">Motivación (2/2)</span></h2>
-<p><strong>¿Cómo modelamos la información?</strong></p>
-<div class="medium-par-2">
-<ol type="1">
-<li class="fragment">Flujo <em>ETL</em> automatizado que descarga y procesa los paradatos ENUSC.
-<ul>
-<li class="fragment">En el procesamiento, nos interesa captar el comportamiento de los registros de las diferentes acciones realizadas (medir cantidad de eventos y el tiempo de ejecución).</li>
-</ul></li>
-<li class="fragment">Los datos transformados son el input para modelos de detección de anomalías.</li>
-<li class="fragment">Visualización de resultados de la detección y monitoreo del comportamiento de registros durante el levantamiento.</li>
-</ol>
-</div>
-<!-- EDITAR CONTINUACION... PONER QUE SE BUSCA ANALIZAR EL COMPORTAMIENTO DE REGISTRO DE RESPUESTAS DE LOS ENCUESTADORES EN CADA RECOLECCION -> ¿COMO LO HACEMOS? MIDIENDO TIEMPOS Y CANTIDADES DE REGISTROS SEGUN DIFERENTES EVENTOS. -->
-</section>
-<section id="detección-de-anomalías-procesamiento-de-paradatos-16" class="slide level2">
-<h2><span class="big-par">Detección de anomalías | Procesamiento de paradatos (1/6)</span></h2>
+<section id="procesamiento-de-paradatos-16" class="slide level2">
+<h2><span class="big-par">Procesamiento de paradatos (1/6)</span></h2>
 <p><strong>¿Qué son los paradatos?</strong></p>
 <!-- introducir muy a grandes rasgos sus caracteristicas para despues entrar en detalle en como se procesaron los datos para que quedaran a nivel de entrevista -->
 <div class="medium-par">
@@ -404,67 +372,67 @@
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">8d4686fb47f74bfcbe6a1e16e609cf34</td>
+<td style="text-align: left;">401cb199a3a24edc921db8d09b4fe8b4</td>
 <td style="text-align: left;">InterviewCreated</td>
-<td style="text-align: left;">186429656</td>
+<td style="text-align: left;">138554511</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: left;">2023-08-25 14:39:06</td>
-<td style="text-align: left;">-03:00:00</td>
+<td style="text-align: left;">2023-07-20 20:35:23</td>
+<td style="text-align: left;">-04:00:00</td>
 <td style="text-align: left;">nan</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">a94f9c43968e418ca35b4b36cb0e01d9</td>
-<td style="text-align: left;">AnswerSet</td>
-<td style="text-align: left;">78369647</td>
+<td style="text-align: left;">401cb199a3a24edc921db8d09b4fe8b4</td>
+<td style="text-align: left;">SupervisorAssigned</td>
+<td style="text-align: left;">138554511</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: left;">2023-11-01 14:55:07</td>
-<td style="text-align: left;">-03:00:00</td>
-<td style="text-align: left;">rph_fono_k||971833597||</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">c06c71475abc473fbd76571b072bf19b</td>
-<td style="text-align: left;">InterviewCreated</td>
-<td style="text-align: left;">208491164</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: left;">2023-09-14 19:37:13</td>
-<td style="text-align: left;">-03:00:00</td>
-<td style="text-align: left;">nan</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">5a3a241f21034fb4aed900daa3735f93</td>
-<td style="text-align: left;">QuestionDeclaredValid</td>
-<td style="text-align: left;">nan</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: left;">2023-12-26 15:43:13</td>
-<td style="text-align: left;">-03:00:00</td>
-<td style="text-align: left;">rph_laboral_a||2</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">6f2a3af25e8441d48c727cc667371ae1</td>
-<td style="text-align: left;">VariableDisabled</td>
-<td style="text-align: left;">nan</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: left;">2023-11-02 20:26:08</td>
-<td style="text-align: left;">-03:00:00</td>
-<td style="text-align: left;">edad_kish||</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2ad501f18cbf44bd96aff7b52b77c1cb</td>
-<td style="text-align: left;">InterviewCreated</td>
-<td style="text-align: left;">104121918</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: left;">2023-07-27 19:11:09</td>
+<td style="text-align: left;">2023-07-20 20:35:23</td>
 <td style="text-align: left;">-04:00:00</td>
 <td style="text-align: left;">nan</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">2c37aa032e6743e4b18a02127bb49507</td>
-<td style="text-align: left;">VariableSet</td>
+<td style="text-align: left;">401cb199a3a24edc921db8d09b4fe8b4</td>
+<td style="text-align: left;">InterviewModeChanged</td>
+<td style="text-align: left;">138554511</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">2023-07-20 20:35:23</td>
+<td style="text-align: left;">-04:00:00</td>
+<td style="text-align: left;">CAPI||</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">401cb199a3a24edc921db8d09b4fe8b4</td>
+<td style="text-align: left;">InterviewerAssigned</td>
+<td style="text-align: left;">138554511</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">2023-07-20 20:35:23</td>
+<td style="text-align: left;">-04:00:00</td>
+<td style="text-align: left;">138554511</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">401cb199a3a24edc921db8d09b4fe8b4</td>
+<td style="text-align: left;">KeyAssigned</td>
 <td style="text-align: left;">nan</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: left;">2023-12-03 23:11:50</td>
-<td style="text-align: left;">-03:00:00</td>
-<td style="text-align: left;">kish_dummy||0||4</td>
+<td style="text-align: left;">2023-07-20 20:35:23</td>
+<td style="text-align: left;">-04:00:00</td>
+<td style="text-align: left;">58-24-45-43</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">401cb199a3a24edc921db8d09b4fe8b4</td>
+<td style="text-align: left;">AnswerSet</td>
+<td style="text-align: left;">138554511</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">2023-07-20 20:35:23</td>
+<td style="text-align: left;">-04:00:00</td>
+<td style="text-align: left;">FOLIO||23774||</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">401cb199a3a24edc921db8d09b4fe8b4</td>
+<td style="text-align: left;">AnswerSet</td>
+<td style="text-align: left;">138554511</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">2023-07-20 20:35:23</td>
+<td style="text-align: left;">-04:00:00</td>
+<td style="text-align: left;">REGION||5||</td>
 </tr>
 </tbody>
 </table>
@@ -477,8 +445,8 @@
 </ul>
 </div>
 </section>
-<section id="detección-de-anomalías-procesamiento-de-paradatos-26" class="slide level2">
-<h2><span class="big-par">Detección de anomalías | Procesamiento de paradatos (2/6)</span></h2>
+<section id="procesamiento-de-paradatos-26" class="slide level2">
+<h2><span class="big-par">Procesamiento de paradatos (2/6)</span></h2>
 <div class="medium-par">
 <ul>
 <li class="fragment"><p>Pero en el análisis sólo necesitamos las acciones realizadas por los responsables de la encuesta (encuestadores y encargados de grupo).</p></li>
@@ -634,8 +602,8 @@
 </div>
 <p><br></p>
 </section>
-<section id="detección-de-anomalías-procesamiento-de-paradatos-36" class="slide level2">
-<h2><span class="big-par">Detección de anomalías | Procesamiento de paradatos (3/6)</span></h2>
+<section id="procesamiento-de-paradatos-36" class="slide level2">
+<h2><span class="big-par">Procesamiento de paradatos (3/6)</span></h2>
 <p><strong>¿Cómo se realiza la estimación de la cantidad de eventos?</strong></p>
 <div class="medium-par">
 <ol type="1">
@@ -737,8 +705,8 @@
 </div>
 </div>
 </section>
-<section id="detección-de-anomalías-procesamiento-de-paradatos-46" class="slide level2">
-<h2><span class="big-par">Detección de anomalías | Procesamiento de paradatos (4/6)</span></h2>
+<section id="procesamiento-de-paradatos-46" class="slide level2">
+<h2><span class="big-par">Procesamiento de paradatos (4/6)</span></h2>
 <p><!-- - Si el tiempo es mayor a 3 minutos para encuestadores o mayor a 15 minutos para encargados de grupos, se eliminará pues es considerado como punto de inicio de otra visita/ revisión realizada. --></p>
 <div class="fragment">
 <p><strong>¿Cómo se realiza la estimación de los tiempos de respuesta?</strong></p>
@@ -829,8 +797,8 @@
 <p>Tiempo total acciones: 36</p>
 </div>
 </section>
-<section id="detección-de-anomalías-procesamiento-de-paradatos-56" class="slide level2">
-<h2><span class="big-par">Detección de anomalías | Procesamiento de paradatos (5/6)</span></h2>
+<section id="procesamiento-de-paradatos-56" class="slide level2">
+<h2><span class="big-par">Procesamiento de paradatos (5/6)</span></h2>
 <p><strong>¿Cómo se estima los tiempos de respuesta en las diferentes secciones (módulos)?</strong></p>
 <div class="medium-par">
 <ol type="1">
@@ -840,8 +808,8 @@
 </ol>
 </div>
 </section>
-<section id="detección-de-anomalías-procesamiento-de-paradatos-66" class="slide level2">
-<h2><span class="big-par">Detección de anomalías | Procesamiento de paradatos (6/6)</span></h2>
+<section id="procesamiento-de-paradatos-66" class="slide level2">
+<h2><span class="big-par">Procesamiento de paradatos (6/6)</span></h2>
 <p>Ejemplo de tabla procesada que resume las acciones generadas en cada entrevista:</p>
 <div class="small-par-2">
 <div class="cell">
@@ -858,27 +826,27 @@
 <tbody>
 <tr class="odd">
 <td style="text-align: right;">1000000</td>
-<td style="text-align: right;">1561</td>
-<td style="text-align: right;">197</td>
-<td style="text-align: right;">276</td>
+<td style="text-align: right;">211</td>
+<td style="text-align: right;">145</td>
+<td style="text-align: right;">31</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">1000001</td>
-<td style="text-align: right;">2702</td>
-<td style="text-align: right;">105</td>
-<td style="text-align: right;">303</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">1000002</td>
-<td style="text-align: right;">334</td>
-<td style="text-align: right;">69</td>
-<td style="text-align: right;">28</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">1000003</td>
 <td style="text-align: right;">1355</td>
 <td style="text-align: right;">391</td>
 <td style="text-align: right;">265</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1000002</td>
+<td style="text-align: right;">3961</td>
+<td style="text-align: right;">407</td>
+<td style="text-align: right;">312</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1000003</td>
+<td style="text-align: right;">2236</td>
+<td style="text-align: right;">963</td>
+<td style="text-align: right;">236</td>
 </tr>
 </tbody>
 </table>
@@ -902,30 +870,30 @@
 <tbody>
 <tr class="odd">
 <td style="text-align: right;">1000000</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">1</td>
 <td style="text-align: right;">2</td>
-<td style="text-align: left;">11</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">62</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">1000001</td>
-<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
 <td style="text-align: left;">11</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">1000002</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: left;">52</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">11</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">1000003</td>
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
 <td style="text-align: left;">11</td>
 </tr>
 </tbody>
